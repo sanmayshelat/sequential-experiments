@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import numpy as np
+from scipy.stats import norm
 
 
 class Sequential:
@@ -10,32 +11,42 @@ class Sequential:
 		self.delta = delta
 
 	def fixed_sample_proportion(self) -> Tuple[int, int]:
-		if self.delta <= 0.02:
+		N_min = 2
+		if self.delta < 0.01:
 			raise NotImplementedError(
 				"""
-				Effect sizes <= 2%% are currently not supported.
+				Effect sizes <= 1%% are currently not supported.
 				They can be implemented by searching within a smaller
-				space of N and d_star.
+				space of N.
 				"""
 			)
+			N_min = 250_000
+			N_max = 500_000
+		elif self.delta <= 0.02:
+			N_min = 200_000
 			N_max = 300_000
-			d_star_max = 1500
 		elif self.delta <= 0.05:
-			N_max = 100_000
-			d_star_max = 500
+			N_min = 10_000
+			N_max = 70_000
 		elif self.delta <= 0.1:
-			N_max = 12_000
-			d_star_max = 250
+			N_min = 2_500
+			N_max = 10_000
 		else:
 			N_max = 3_000
-			d_star_max = 120
 
 		log_i_cumsum = np.log(np.arange(1, N_max + 1)).cumsum()
 		log_p_h1 = np.log(1 / (2 + self.delta))
 		log_q_h1 = np.log((1 + self.delta) / (2 + self.delta))
 		log_p_h0 = np.log(1 / 2)
 
-		d_star_range = np.arange(2, d_star_max, 2)
+		d_star_range = np.unique(
+			np.ceil(
+				np.abs(norm.ppf(self.alpha / 2))
+				* np.sqrt(np.arange(N_min, N_max + 1, 2))
+				/ 2
+			)
+			* 2
+		).astype(int)
 		d_star_values = np.tile(d_star_range, (N_max // 2, 1)).T
 		n_values = np.tile(np.arange(2, N_max + 1, 2), (len(d_star_range), 1))
 
@@ -64,11 +75,11 @@ class Sequential:
 		)
 		h0 = np.cumsum(h0_terms, axis=1)
 
-		d_star, N = np.unravel_index(
+		d_star_idx, N_idx = np.unravel_index(
 			np.argmax((h0 < self.alpha) & (h1 > (1 - self.beta))), h1.shape
 		)
-		N = (N + 1) * 2
-		d_star = (d_star + 1) * 2
+		N = n_values[0, :][N_idx]
+		d_star = d_star_range[d_star_idx]
 
 		print(f"""N:{N}, d*: {d_star}""")
 		return N, d_star

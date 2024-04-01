@@ -80,6 +80,6 @@ class DgpProportion:
 		)
 
 		if expt_impact is not None:
-			df = df.assign(treatmeant=unit_treatments)
+			df = df.assign(treatment=unit_treatments)
 
 		return df
