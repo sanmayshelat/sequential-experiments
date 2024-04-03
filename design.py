@@ -10,7 +10,7 @@ class Sequential:
 		self.beta = beta
 		self.delta = delta
 
-	def fixed_sample_proportion(self) -> Tuple[int, int]:
+	def fixed_wins_proportion(self) -> Tuple[int, int]:
 		N_min = 2
 		if self.delta < 0.01:
 			raise NotImplementedError(

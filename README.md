@@ -5,4 +5,4 @@ Repository to:
 
 Implemented:
 - Bernoulli type DGP (for proportion tests)
-- Fixed-sample, proportion type test (based on the method described here[https://www.evanmiller.org/sequential-ab-testing.html#cite4])
+- Fixed-wins, proportion type test (based on the method described [here](https://www.evanmiller.org/sequential-ab-testing.html#cite4))
