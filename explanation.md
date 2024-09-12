@@ -127,7 +127,7 @@ And we would like this probability to be higher than power ($1-\beta$):
 $$
 \begin{align*}
 \sum_{n=1}^{\mathbb{N}}\frac{d^\*}{n}\binom{n}{\frac{n-d^\*}{2}}
-\frac{1}{2+\delta}^{(n-d^\*)/2}\frac{1+\delta}{2+\delta}^{(n+d^\*)/2} &< 1-\beta
+\frac{1}{2+\delta}^{(n-d^\*)/2}\frac{1+\delta}{2+\delta}^{(n+d^\*)/2} &> 1-\beta
 \end{align*}
 $$
 
@@ -138,7 +138,7 @@ $$
 \begin{align*}
 \sum_{n=1}^{\mathbb{N}}\frac{d^\*}{n}\binom{n}{\frac{n-d^\*}{2}}\left(\frac{1}{2}\right)^{n} &< \alpha\\
 \sum_{n=1}^{\mathbb{N}}\frac{d^\*}{n}\binom{n}{\frac{n-d^\*}{2}}
-\frac{1}{2+\delta}^{(n-d^\*)/2}\frac{1+\delta}{2+\delta}^{(n+d^\*)/2} &< 1-\beta
+\frac{1}{2+\delta}^{(n-d^\*)/2}\frac{1+\delta}{2+\delta}^{(n+d^\*)/2} &> 1-\beta
 \end{align*}
 $$
 
