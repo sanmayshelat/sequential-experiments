@@ -2,17 +2,20 @@ from typing import Tuple
 
 import numpy as np
 from scipy.stats import norm
+from statsmodels.stats import power
 
 
 class Sequential:
-	def __init__(self, alpha: float = 0.05, beta: float = 0.2, delta: float = 0.1):
+	def __init__(
+		self, alpha: float = 0.05, beta: float = 0.2, relative_delta: float = 0.1
+	):
 		self.alpha = alpha
 		self.beta = beta
-		self.delta = delta
+		self.relative_delta = relative_delta
 
 	def fixed_wins_proportion(self) -> Tuple[int, int]:
 		N_min = 2
-		if self.delta < 0.01:
+		if self.relative_delta < 0.01:
 			raise NotImplementedError(
 				"""
 				Effect sizes <= 1%% are currently not supported.
@@ -22,21 +25,21 @@ class Sequential:
 			)
 			N_min = 250_000
 			N_max = 500_000
-		elif self.delta <= 0.02:
+		elif self.relative_delta <= 0.02:
 			N_min = 200_000
 			N_max = 300_000
-		elif self.delta <= 0.05:
+		elif self.relative_delta <= 0.05:
 			N_min = 10_000
 			N_max = 70_000
-		elif self.delta <= 0.1:
+		elif self.relative_delta <= 0.1:
 			N_min = 2_500
 			N_max = 10_000
 		else:
 			N_max = 3_000
 
 		log_i_cumsum = np.log(np.arange(1, N_max + 1)).cumsum()
-		log_p_h1 = np.log(1 / (2 + self.delta))
-		log_q_h1 = np.log((1 + self.delta) / (2 + self.delta))
+		log_p_h1 = np.log(1 / (2 + self.relative_delta))
+		log_q_h1 = np.log((1 + self.relative_delta) / (2 + self.relative_delta))
 		log_p_h0 = np.log(1 / 2)
 
 		d_star_range = np.unique(
@@ -83,3 +86,36 @@ class Sequential:
 
 		print(f"""N:{N}, d*: {d_star}""")
 		return N, d_star
+
+	def wald_sprt(self):
+		a = np.log(self.beta / (1 - self.alpha))
+		b = np.log((1 - self.beta) / self.alpha)
+		return a, b
+
+	def fixed_horizon(
+		self, base_conversion: float = 0.05, expt_ratio: float = 1.0
+	) -> int:
+		# TODO: correct for multiple variants
+		p_c = base_conversion
+		p_t = base_conversion * (1 + self.relative_delta)
+		abs_diff = base_conversion * self.relative_delta
+		var_c = p_c * (1 - p_c)
+		var_t = p_t * (1 - p_t)
+		effect_size = abs_diff / np.sqrt((var_c + var_t) / 2)
+
+		N = power.zt_ind_solve_power(
+			effect_size=effect_size,
+			alpha=self.alpha,
+			power=1 - self.beta,
+			ratio=expt_ratio,
+			alternative='larger',
+		)
+
+		# Manual:
+		# N = (
+		# 	((norm.ppf(1-self.alpha/2) + norm.ppf(1-self.beta))**2)
+		# 	* (var_c + var_t)
+		# 	/(abs_diff**2)
+		# )
+
+		return np.ceil(N) * 2
